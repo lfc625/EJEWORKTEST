@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en" ng-app="">
+<head>
+    <meta charset="UTF-8">
+    <title>购物车</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css"/>
+    <style type="text/css">
+        .form-control{
+            height: 30px;
+        }
+        .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th{
+            padding: 24px;
+            line-height: 2.4;
+        }
+        th,td{
+            text-align: center;
+        }
+        .goodsnameleft{
+            text-align: left;           
+        }
+    </style>
+</head>
+<body>
+    <div class="container" ng-controller="cartController">
+        <table class="table table-hover" >
+            <caption class="text-center" style="font-size: 22px;">
+                <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;欢迎来到您的易家宜购物车
+            </caption>
+            <thead>
+                <tr>
+                    <th><input type="checkbox">全选</th>
+                    <th class="goodsnameleft">商品名称</th>
+                    <th>购买数量</th>
+                    <th>商品单价</th>
+                    <th>商品总价</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody ng-show="cart.length">
+                <tr ng-repeat="item in cart">
+                    <td><input type="checkbox"></td>
+                    <td class="goodsnameleft"><img width="40px" height="40px" src="{{item.src}}">{{item.name}}</td>
+                    <td class="row col-lg-2" >
+                        <div class="input-group col-lg-8" style="margin-left: 24px;">
+                          <span class="input-group-btn">
+                            <button class="btn btn-info btn-sm" type="button" ng-click="qreduce(item.id)">-</button>
+                          </span>
+                            <input style="text-align: center"  type="text" class="form-control" value="{{item.quantity}}" ng-model="item.quantity" >
+                          <span class="input-group-btn">
+                            <button class="btn btn-info btn-sm" type="button" ng-click="qadd(item.id)">+</button>
+                          </span>
+                        </div>
+                    </td>
+                    <td>{{item.price | number:2}}</td>
+                    <td>{{item.price * item.quantity | number:2}}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" ng-click="remove(item.id)">移除</button>
+                        <button type="button" class="btn btn-info btn-sm" ng-click="remove(item.id)">加入我的关注</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="goodsnameleft">
+                        <strong>总购买数:{{totalQuantity()}}</strong>
+                    </td>
+                    <td colspan="2" class="goodsnameleft">
+                        <strong>合计金额:{{totalPrice() | number:2}}</strong>
+                    </td>
+                    <td></td>                       
+                    <td>
+                        <button type="button" class="btn btn-danger" ng-click="removeAll()">清空购物车</button>
+                        <button type="button" class="btn btn-warning">去结算</button>
+                    </td>
+                </tr>
+            </tbody>
+            <tbody ng-show="!cart.length">
+                <tr>
+                    <td colspan="6">
+                     <strong>您的购物车没有商品，快去选购吧！</strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <strong>总购买数:{{totalQuantity()}}</strong>
+                    </td>
+                    <td colspan="2">
+                        <strong>合计金额:{{totalPrice() | number:2}}</strong>
+                    </td>
+                    <td></td>                       
+                    <td>
+                        <button type="button" class="btn btn-warning" ng-click="return">挑选商品</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+<script type="text/javascript">
+    var cartController =function($scope){
+        $scope.cart = [
+            {
+             id:1000001,
+             name:'康师傅桶面',
+             src:'img/indexnav1.png',
+             quantity:2,
+             price:5.5,
+            },{
+            id:1000091,
+            name:'今麦郎弹面',
+            src:'img/indexnav2.png',
+            quantity:3,
+            price:7.5,
+            },{
+            id:1000201,
+            name:'统一老坛酸菜牛肉面',
+            src:'img/indexnav3.png',
+            quantity:7,
+            price:8,
+            },{
+            id:1003335,
+            name:'超级福满多',
+            src:'img/indexnav1.png',
+            quantity:5,
+            price:3,
+            },{id:1000205,
+            name:'统一老坛酸菜牛肉面',
+            src:'img/indexnav3.png',
+            quantity:1,
+            price:25,
+            }
+        ];
+        //计算合计金额
+        $scope.totalPrice = function(){
+            var total = 0;
+            angular.forEach($scope.cart,function(item){
+                total += item.price * item.quantity;
+            })
+            return total;
+        }
+        //计算商品总数
+        $scope.totalQuantity = function(){
+            var totalq = 0;
+            angular.forEach($scope.cart,function(item){
+                if(item.quantity===''||item.quantity===null||item.quantity<0){
+                    item.quantity=1;
+                }
+                totalq +=  parseInt(item.quantity);
+            })
+            return totalq;
+        }
+        //找到索引
+        var findIndex = function(id){
+            angular.forEach($scope.cart,function(item,key){
+                if(item.id === id){
+                    index = key;
+                    return;
+                }
+            })
+            return index;
+        }
+        //移除操作
+        $scope.remove = function(id){
+            var index =-1;
+            var index =findIndex(id);
+            angular.forEach($scope.cart,function(item,key){
+                if(item.id === id){
+                    index = key;
+                }
+            })
+            if(index !== -1){
+                var returnkey = confirm('是否从购物车中移除该商品？');
+                if(returnkey){
+                    $scope.cart.splice(index,1);
+                }
+            }
+        }
+        //清空购物车
+        $scope.removeAll = function(){
+            var returnkey = confirm('是否清空购物车？');
+            if(returnkey){
+                $scope.cart = [];
+            }
+        }
+        //为商品添加购买数量
+        $scope.qadd = function(id){
+            var index =-1;
+            var index =findIndex(id);
+            if(index !== -1){
+                $scope.cart[index].quantity=parseInt($scope.cart[index].quantity)+1;
+            }
+        }
+        //为商品减少购买数量
+        $scope.qreduce = function(id){
+            var index =-1;
+            var index =findIndex(id);
+            if(index !== -1){
+                if($scope.cart[index].quantity>1){
+                    $scope.cart[index].quantity=parseInt($scope.cart[index].quantity)-1;
+                }else{
+                        $scope.remove(id);
+                }
+            }
+        }
+    }
+</script>
+<script type="text/javascript" src="js/angular.min.js"></script>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</body>
+</html>
